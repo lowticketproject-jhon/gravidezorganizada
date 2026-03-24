@@ -6,9 +6,10 @@ import { supabase } from '../lib/supabase';
 
 interface LoginProps {
   onLogin: (email: string, rememberMe: boolean, userId?: string) => void;
+  onRequestTokenValidation?: () => void;
 }
 
-export const Login: React.FC<LoginProps> = ({ onLogin }) => {
+export const Login: React.FC<LoginProps> = ({ onLogin, onRequestTokenValidation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
@@ -141,10 +142,15 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </Button>
           </form>
 
-          <div className="mt-8 pt-8 border-t border-gray-100 text-center">
+          <div className="mt-8 pt-8 border-t border-gray-100 text-center space-y-3">
             <p className="text-gray-600 text-sm font-bold">
               {isSignUp ? 'Já tem uma conta?' : 'Não tem uma conta?'} <button onClick={() => setIsSignUp(!isSignUp)} className="text-violet-600 font-black">{isSignUp ? 'Entrar' : 'Cadastre-se'}</button>
             </p>
+            {onRequestTokenValidation && (
+              <p className="text-gray-500 text-xs font-bold">
+                Comprou o app? <button onClick={onRequestTokenValidation} className="text-violet-600 font-black underline">Validar token de acesso</button>
+              </p>
+            )}
           </div>
         </Card>
 

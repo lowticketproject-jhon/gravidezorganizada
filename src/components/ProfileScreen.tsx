@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { UserData } from '../types';
 import { Card, Button } from './UI';
 import { 
@@ -23,9 +23,12 @@ interface ProfileScreenProps {
   onLogout: () => void;
   onBack?: () => void;
   userId?: string | null;
+  onNavigate?: (screen: string) => void;
+  darkMode?: boolean;
+  onToggleDarkMode?: () => void;
 }
 
-export const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onReset, onLogout, onBack, userId }) => {
+export const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onReset, onLogout, onBack, userId, onNavigate, darkMode, onToggleDarkMode }) => {
   // Theme colors based on gender
   const theme = {
     boy: {
@@ -66,6 +69,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onReset,
     }
   }[userData.babyGender === 'boy' ? 'boy' : userData.babyGender === 'girl' ? 'girl' : 'unknown'];
 
+  const [notifications, setNotifications] = useState(true);
+
   return (
     <div className="pb-32 pt-8 px-4 max-w-2xl mx-auto space-y-8">
       <header className="flex justify-between items-center mb-8">
@@ -79,22 +84,32 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onReset,
             </button>
           )}
           <div>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight">Perfil</h1>
+            <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Perfil</h1>
             <p className="text-gray-600 font-bold mt-1">Suas configurações</p>
           </div>
         </div>
       </header>
 
       <div className="text-center space-y-4 mb-10">
-        <div className={`w-28 h-28 rounded-full bg-gradient-to-br ${theme.avatar} flex items-center justify-center ${theme.avatarIcon} mx-auto border-4 border-white shadow-lg relative`}>
-          <User className="w-12 h-12" />
-          <div className={`absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm border-2 ${theme.avatarBorder}`}>
-            <div className="w-3 h-3 bg-green-500 rounded-full" />
-          </div>
+        <div className={`w-28 h-28 rounded-full bg-gradient-to-br ${theme.avatar} flex items-center justify-center ${theme.avatarIcon} mx-auto border-4 border-white shadow-lg relative overflow-hidden`}>
+          {userData.motherImage ? (
+            <img src={userData.motherImage} alt="Foto da mamãe" className="w-full h-full object-cover" />
+          ) : (
+            <User className="w-12 h-12" />
+          )}
+          <button 
+            onClick={() => onNavigate?.('edit-mother')}
+            className={`absolute bottom-0 right-0 w-8 h-8 ${theme.iconBg} rounded-full flex items-center justify-center shadow-sm border-2 ${theme.avatarBorder} hover:scale-110 transition-transform`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 ${theme.iconText}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+              <path d="m15 5 4 4"/>
+            </svg>
+          </button>
         </div>
         <div>
-          <h2 className="text-2xl font-black text-gray-900 tracking-tight">{userData.motherName}</h2>
-          <p className="text-gray-600 font-bold mt-1">Mamãe do {userData.babyName || 'Bebê'}</p>
+          <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{userData.motherName}</h2>
+          <p className="text-gray-600 dark:text-gray-400 font-bold mt-1">Mamãe do {userData.babyName || 'Bebê'}</p>
         </div>
       </div>
 
@@ -125,7 +140,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onReset,
       <section className="space-y-4">
         <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest ml-2">Configurações da Conta</h3>
         <div className="space-y-3">
-          <Card className="p-4 flex items-center justify-between group hover:shadow-md transition-all cursor-pointer border border-gray-100 bg-white">
+          <Card onClick={() => onNavigate?.('edit-mother')} className="p-4 flex items-center justify-between group hover:shadow-md transition-all cursor-pointer border border-gray-100 bg-white">
             <div className="flex items-center gap-4">
               <div className={`w-12 h-12 rounded-[18px] ${theme.iconBg} flex items-center justify-center ${theme.iconText} shadow-sm`}>
                 <User className="w-6 h-6" />
@@ -137,7 +152,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onReset,
             </div>
           </Card>
           
-          <Card className="p-4 flex items-center justify-between group hover:shadow-md transition-all cursor-pointer border border-gray-100 bg-white">
+          <Card onClick={() => onNavigate?.('edit-baby')} className="p-4 flex items-center justify-between group hover:shadow-md transition-all cursor-pointer border border-gray-100 bg-white">
             <div className="flex items-center gap-4">
               <div className={`w-12 h-12 rounded-[18px] bg-blue-50 flex items-center justify-center text-blue-600 shadow-sm`}>
                 <Baby className="w-6 h-6" />
@@ -149,7 +164,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onReset,
             </div>
           </Card>
 
-          <Card className="p-4 flex items-center justify-between group hover:shadow-md transition-all cursor-pointer border border-gray-100 bg-white">
+          <Card onClick={() => onNavigate?.('edit-dates')} className="p-4 flex items-center justify-between group hover:shadow-md transition-all cursor-pointer border border-gray-100 bg-white">
             <div className="flex items-center gap-4">
               <div className={`w-12 h-12 rounded-[18px] bg-amber-50 flex items-center justify-center text-amber-600 shadow-sm`}>
                 <Calendar className="w-6 h-6" />
@@ -173,9 +188,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onReset,
               </div>
               <span className="font-bold text-gray-800 text-lg">Notificações</span>
             </div>
-            <div className={`w-14 h-8 bg-gradient-to-r ${theme.primary} rounded-full relative cursor-pointer shadow-inner`}>
-              <div className="absolute right-1 top-1 w-6 h-6 bg-white rounded-full shadow-sm" />
-            </div>
+            <button 
+              onClick={() => setNotifications(!notifications)}
+              className={`w-14 h-8 bg-gradient-to-r ${notifications ? theme.primary : 'from-gray-300 to-gray-400'} rounded-full relative cursor-pointer shadow-inner transition-all`}
+            >
+              <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm transition-all ${notifications ? 'right-1' : 'left-1'}`} />
+            </button>
           </Card>
 
           <Card className="p-4 flex items-center justify-between border border-gray-100 bg-white shadow-sm">
@@ -185,9 +203,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onReset,
               </div>
               <span className="font-bold text-gray-800 text-lg">Tema Escuro</span>
             </div>
-            <div className="w-14 h-8 bg-gray-200 rounded-full relative cursor-pointer shadow-inner">
-              <div className="absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow-sm" />
-            </div>
+            <button 
+              onClick={onToggleDarkMode}
+              className={`w-14 h-8 ${darkMode ? 'bg-gradient-to-r from-violet-500 to-violet-600' : 'bg-gray-200'} rounded-full relative cursor-pointer shadow-inner transition-all`}
+            >
+              <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm transition-all ${darkMode ? 'right-1' : 'left-1'}`} />
+            </button>
           </Card>
         </div>
       </section>

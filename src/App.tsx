@@ -28,6 +28,7 @@ import { AppointmentsScreen } from './components/AppointmentsScreen';
 import { ChecklistsScreen } from './components/ChecklistsScreen';
 import { BabyScreen } from './components/BabyScreen';
 import { ProfileScreen } from './components/ProfileScreen';
+import { EditProfileScreen } from './components/EditProfileScreen';
 import { DEFAULT_CHECKLISTS } from './constants/checklists';
 import { calculatePregnancyData } from './utils/pregnancyCalculations';
 import { AnimatePresence, motion } from 'motion/react';
@@ -45,6 +46,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [darkMode, setDarkMode] = useState(false);
 
   // Load data from localStorage and check Supabase session
   useEffect(() => {
@@ -132,6 +134,19 @@ export default function App() {
     setActiveScreen('home');
   };
 
+  const updateUserData = async (data: Partial<UserData>) => {
+    const updated = { ...userData!, ...data };
+    setUserData(updated);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      userData: updated,
+      appointments,
+      checklists
+    }));
+    if (userId) {
+      await supabaseService.saveUserData(userId, { userData: updated, appointments, checklists });
+    }
+  };
+
   const handleReset = () => {
     // For now, we'll just reset without confirm to avoid iframe issues, 
     // or the user can add a custom modal later.
@@ -211,7 +226,13 @@ export default function App() {
       case 'baby':
         return <BabyScreen userData={userData} onBack={() => setActiveScreen('home')} />;
       case 'profile':
-        return <ProfileScreen userData={userData} onReset={handleReset} onLogout={handleLogout} onBack={() => setActiveScreen('home')} userId={userId} />;
+        return <ProfileScreen userData={userData} onReset={handleReset} onLogout={handleLogout} onBack={() => setActiveScreen('home')} userId={userId} onNavigate={setActiveScreen} darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)} />;
+      case 'edit-mother':
+        return <EditProfileScreen userData={userData} onSave={updateUserData} onBack={() => setActiveScreen('profile')} type="mother" />;
+      case 'edit-baby':
+        return <EditProfileScreen userData={userData} onSave={updateUserData} onBack={() => setActiveScreen('profile')} type="baby" />;
+      case 'edit-dates':
+        return <EditProfileScreen userData={userData} onSave={updateUserData} onBack={() => setActiveScreen('profile')} type="dates" />;
       default:
         return <Dashboard userData={userData} appointments={appointments} onNavigate={setActiveScreen} />;
     }
@@ -246,16 +267,16 @@ export default function App() {
   }[userData.babyGender === 'boy' ? 'boy' : userData.babyGender === 'girl' ? 'girl' : 'unknown'];
 
   return (
-    <div className={`min-h-screen bg-[#FCFBFA] font-sans selection:bg-${theme.accent}-100 selection:text-${theme.accent}-700 overflow-x-hidden text-gray-900`}>
+    <div className={`min-h-screen bg-[#FCFBFA] dark:bg-gray-900 font-sans selection:bg-violet-100 selection:text-violet-700 overflow-x-hidden text-gray-900 dark:text-gray-100 ${darkMode ? 'dark' : ''}`}>
       <BackgroundDecoration gender={userData.babyGender} />
       
       {/* Desktop Sidebar (Hidden on mobile) */}
-      <div className={`hidden lg:flex fixed left-0 top-0 bottom-0 w-64 ${theme.sidebar} backdrop-blur-xl flex-col p-6 z-50`}>
+      <div className={`hidden lg:flex fixed left-0 top-0 bottom-0 w-64 ${theme.sidebar} dark:bg-gray-800 dark:border-gray-700 backdrop-blur-xl flex-col p-6 z-50`}>
         <div className="flex items-center gap-3 mb-12 relative z-10">
-          <div className={`w-10 h-10 bg-gradient-to-br ${theme.gradient} rounded-2xl flex items-center justify-center text-white shadow-lg shadow-${theme.accent}-100/50`}>
+          <div className={`w-10 h-10 bg-gradient-to-br ${theme.gradient} rounded-2xl flex items-center justify-center text-white shadow-lg shadow-violet-100/50`}>
             <Baby className="w-6 h-6" />
           </div>
-          <span className="font-black text-gray-900 tracking-tight">Gravidez <span className={theme.accentText}>Organizada</span></span>
+          <span className="font-black text-gray-900 dark:text-white tracking-tight">Gravidez <span className={`${theme.accentText} dark:text-white`}>Organizada</span></span>
         </div>
         
         <nav className="flex-1 space-y-2 relative z-10">
@@ -277,7 +298,7 @@ export default function App() {
                 key={item.id}
                 onClick={() => setActiveScreen(item.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm transition-all ${
-                  isActive ? theme.activeTab + ' shadow-sm' : theme.inactiveTab
+                  isActive ? theme.activeTab + ' shadow-sm' : theme.inactiveTab + ' dark:text-gray-400 dark:hover:bg-gray-700'
                 }`}
               >
                 <Icon className={`w-5 h-5 ${isActive ? theme.accentText : 'text-gray-400'}`} />

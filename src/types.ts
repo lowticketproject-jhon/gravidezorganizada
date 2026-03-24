@@ -4,6 +4,7 @@ export type BabyGender = 'boy' | 'girl' | 'unknown' | 'none';
 
 export interface UserData {
   motherName: string;
+  motherImage?: string;
   babyName: string;
   babyGender: BabyGender;
   startDate?: string; // DUM

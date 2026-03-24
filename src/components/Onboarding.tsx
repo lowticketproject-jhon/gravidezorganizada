@@ -62,13 +62,13 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             exit={{ opacity: 0, y: -20 }}
             className="w-full max-w-md text-center relative z-10"
           >
-            <div className="mb-12 flex justify-center relative">
-              <div className="absolute inset-0 bg-violet-200 blur-2xl opacity-20 rounded-full" />
-              <div className="w-24 h-24 bg-white rounded-[32px] flex items-center justify-center text-violet-400 shadow-[0_15px_35px_rgba(0,0,0,0.05)] border border-violet-50 relative z-10">
-                <Heart className="w-12 h-12" strokeWidth={1.5} />
-              </div>
+            <div className="mb-8 flex justify-center">
+              <img 
+                src="https://res.cloudinary.com/dynjqdxw8/image/upload/v1774313731/ChatGPT_Image_23_de_mar._de_2026_21_53_55_1_kc0uqi.png" 
+                alt="Gravidez Organizada" 
+                className="w-40 h-40 object-contain"
+              />
             </div>
-            <h1 className="text-4xl font-black text-gray-900 mb-4 tracking-tighter">Bem-vinda ao<br/><span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-500 to-blue-500">Gravidez Organizada</span></h1>
             <p className="text-gray-600 mb-10 font-bold">Vamos começar essa jornada incrível juntas? Primeiro, como podemos te chamar?</p>
             
             <Card className={`mb-6 p-2 transition-all border-none shadow-[0_8px_30px_rgba(0,0,0,0.04)] bg-white ${error ? 'ring-2 ring-violet-400 ring-offset-2' : ''}`}>

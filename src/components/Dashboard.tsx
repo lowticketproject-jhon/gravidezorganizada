@@ -12,7 +12,8 @@ import {
   ChevronRight, 
   CheckCircle2,
   Clock,
-  ArrowRight
+  ArrowRight,
+  User
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -82,9 +83,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ userData, appointments, on
             )}
           </p>
         </div>
-        <div className={`w-14 h-14 rounded-2xl bg-white flex items-center justify-center ${theme.text} font-black text-xl shadow-sm border border-gray-100`}>
-          {userData.motherName.charAt(0)}
-        </div>
+        <button onClick={() => onNavigate('profile')} className="relative">
+          {userData.motherImage ? (
+            <img 
+              src={userData.motherImage} 
+              alt={userData.motherName} 
+              className="w-14 h-14 rounded-2xl object-cover shadow-sm border-2 border-white"
+            />
+          ) : (
+            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${theme.primary} flex items-center justify-center text-white font-black text-xl shadow-sm border-2 border-white`}>
+              {userData.motherName.charAt(0)}
+            </div>
+          )}
+        </button>
       </header>
 
       {/* Main Progress Card - High Contrast */}

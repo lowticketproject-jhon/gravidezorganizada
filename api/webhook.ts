@@ -82,7 +82,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             payment_status: paymentStatus,
             token: token,
             used: false,
-            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
           });
       }
     }

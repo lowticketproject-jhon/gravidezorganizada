@@ -1,3 +1,4 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -27,43 +28,31 @@ interface CaktoWebhookPayload {
   };
 }
 
-export default async function handler(req: Request) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!supabaseUrl || !supabaseServiceKey) {
-    return new Response(
-      JSON.stringify({ error: 'Server configuration error' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return res.status(500).json({ error: 'Server configuration error' });
   }
 
   if (req.method === 'OPTIONS') {
-    return new Response('ok', {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      },
-    });
+    return res.status(200).setHeader('Access-Control-Allow-Origin', '*')
+      .setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+      .setHeader('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type')
+      .send('ok');
   }
 
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const payload: CaktoWebhookPayload = await req.json();
+    const payload: CaktoWebhookPayload = req.body;
     
     const eventName = payload.event?.name;
     const customerEmail = payload.purchase?.customer?.email;
     const purchaseStatus = payload.purchase?.status;
 
     if (!customerEmail) {
-      return new Response(
-        JSON.stringify({ error: 'Email do cliente não encontrado' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return res.status(400).json({ error: 'Email do cliente não encontrado' });
     }
 
     const paymentStatus = purchaseStatus === 'paid' ? 'paid' : purchaseStatus === 'pending' ? 'pending' : 'failed';
@@ -105,16 +94,10 @@ export default async function handler(req: Request) {
         .eq('email', customerEmail);
     }
 
-    return new Response(
-      JSON.stringify({ success: true, message: 'Webhook processado com sucesso' }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+    return res.status(200).json({ success: true, message: 'Webhook processado com sucesso' });
 
   } catch (error) {
     console.error('Erro ao processar webhook:', error);
-    return new Response(
-      JSON.stringify({ error: 'Erro interno do servidor' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }

@@ -19,17 +19,31 @@ export const Obrigado: React.FC<ObrigadoProps> = ({ onComplete }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tokenParam = params.get('token');
-    const emailParam = params.get('email');
-    
-    if (tokenParam && emailParam) {
-      setToken(tokenParam);
-      setEmail(emailParam);
-      setStep('form');
-    } else {
-      setError('Link inválido. Por favor, utilize o link enviado ao seu email.');
-    }
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        setStep('success');
+        setTimeout(() => {
+          onComplete(session.user.email || '', session.user.id);
+        }, 2000);
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const tokenParam = params.get('token');
+      const emailParam = params.get('email');
+      
+      if (tokenParam && emailParam) {
+        setToken(tokenParam);
+        setEmail(emailParam);
+        setStep('form');
+      } else {
+        setError('Link inválido. Por favor, utilize o link enviado ao seu email.');
+      }
+    };
+
+    checkAuth();
   }, []);
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -153,7 +167,7 @@ export const Obrigado: React.FC<ObrigadoProps> = ({ onComplete }) => {
           </motion.div>
           <h2 className="text-3xl font-black text-gray-900 mb-2">Obrigada!</h2>
           <p className="text-gray-600 font-bold">Sua compra foi realizada com sucesso!</p>
-          <p className="text-sm text-gray-500 mt-2">Crie sua conta para acessar o app</p>
+          <p className="text-sm text-gray-500 mt-2">Enviamos um link de acesso ao seu email. Clique no link para fazer login automaticamente.</p>
         </div>
 
         <Card className="p-8 border border-gray-100 shadow-2xl bg-white/80 backdrop-blur-xl rounded-[40px]">

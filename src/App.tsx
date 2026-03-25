@@ -59,7 +59,7 @@ export default function App() {
       // Check if this is the obrigado page (path or query param)
       const path = window.location.pathname;
       const params = new URLSearchParams(window.location.search);
-      const isObrigado = path.includes('obrigado') || params.get('page') === 'obrigado';
+      const isObrigado = path.includes('obrigado') || params.get('page') === 'obrigado' || (params.get('token') && params.get('email'));
       
       if (isObrigado) {
         setIsObrigadoPage(true);

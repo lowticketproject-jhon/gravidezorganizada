@@ -8,7 +8,7 @@ interface CreateAccountProps {
   onComplete: (email: string, uid: string) => void;
 }
 
-type Step = 'loading' | 'valid' | 'invalid' | 'success';
+type Step = 'loading' | 'form' | 'error' | 'success';
 
 export const CreateAccount: React.FC<CreateAccountProps> = ({ onComplete }) => {
   const [step, setStep] = useState<Step>('loading');
@@ -20,48 +20,19 @@ export const CreateAccount: React.FC<CreateAccountProps> = ({ onComplete }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const validateToken = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const tokenParam = params.get('token');
-      const emailParam = params.get('email');
+    const params = new URLSearchParams(window.location.search);
+    const tokenParam = params.get('token');
+    const emailParam = params.get('email');
 
-      if (!tokenParam || !emailParam) {
-        setStep('invalid');
-        setError('Link de acesso inválido. Utilize o link enviado ao seu email após a compra.');
-        return;
-      }
+    if (!tokenParam || !emailParam) {
+      setStep('error');
+      setError('Link de acesso necessário. Utilize o link enviado ao seu email após a compra.');
+      return;
+    }
 
-      setToken(tokenParam);
-      setEmail(emailParam);
-
-      try {
-        const { data, error: fetchError } = await supabase
-          .from('purchase_access')
-          .select('*')
-          .eq('token', tokenParam)
-          .eq('email', emailParam)
-          .single();
-
-        if (fetchError || !data) {
-          setStep('invalid');
-          setError('Esse link de acesso não é mais válido ou já foi utilizado. Se precisar, entre em contato com o suporte.');
-          return;
-        }
-
-        if (data.used) {
-          setStep('invalid');
-          setError('Esse link de acesso já foi utilizado. Se precisa de ajuda, entre em contato com o suporte.');
-          return;
-        }
-
-        setStep('valid');
-      } catch (err) {
-        setStep('invalid');
-        setError('Não foi possível validar seu acesso. Verifique o link recebido após a compra.');
-      }
-    };
-
-    validateToken();
+    setToken(tokenParam);
+    setEmail(emailParam);
+    setStep('form');
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -97,11 +68,6 @@ export const CreateAccount: React.FC<CreateAccountProps> = ({ onComplete }) => {
       }
 
       if (authData.user) {
-        await supabase
-          .from('purchase_access')
-          .update({ used: true, auth_user_id: authData.user.id })
-          .eq('token', token);
-
         setStep('success');
         setTimeout(() => {
           onComplete(email, authData.user.id);
@@ -125,7 +91,7 @@ export const CreateAccount: React.FC<CreateAccountProps> = ({ onComplete }) => {
     );
   }
 
-  if (step === 'invalid') {
+  if (step === 'error') {
     return (
       <div className="min-h-screen bg-[#FCFBFA] flex items-center justify-center p-4 relative overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-violet-100/30 rounded-full blur-[100px]" />

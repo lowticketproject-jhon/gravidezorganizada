@@ -10,22 +10,17 @@ interface CreateAccountProps {
 
 type Step = 'loading' | 'verifying' | 'form' | 'error' | 'success';
 
-const SUPABASE_FUNCTION_URL = import.meta.env.VITE_SUPABASE_FUNCTION_URL || '';
-
-async function validateToken(token: string): Promise<{ valid: boolean; email?: string; error?: string }> {
+async function validateToken(token: string): Promise<{ valid: boolean; email?: string; message?: string }> {
   try {
-    const response = await fetch(SUPABASE_FUNCTION_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ token }),
-    });
-
-    const data = await response.json();
+    const { data, error } = await supabase.rpc('validate_purchase_token', { p_token: token });
+    
+    if (error) {
+      return { valid: false, message: 'Erro ao validar token' };
+    }
+    
     return data;
   } catch (error) {
-    return { valid: false, error: 'Erro ao validar token' };
+    return { valid: false, message: 'Erro ao validar token' };
   }
 }
 
@@ -56,7 +51,7 @@ export const CreateAccount: React.FC<CreateAccountProps> = ({ onComplete }) => {
 
       if (!result.valid) {
         setStep('error');
-        setError(result.error || 'Esse link de acesso não é mais válido ou já foi utilizado. Se precisar, entre em contato com o suporte.');
+        setError(result.message || 'Esse link de acesso não é mais válido ou já foi utilizado.');
         return;
       }
 

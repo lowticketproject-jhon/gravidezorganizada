@@ -8,7 +8,26 @@ interface CreateAccountProps {
   onComplete: (email: string, uid: string) => void;
 }
 
-type Step = 'loading' | 'form' | 'error' | 'success';
+type Step = 'loading' | 'verifying' | 'form' | 'error' | 'success';
+
+const SUPABASE_FUNCTION_URL = import.meta.env.VITE_SUPABASE_FUNCTION_URL || '';
+
+async function validateToken(token: string): Promise<{ valid: boolean; email?: string; error?: string }> {
+  try {
+    const response = await fetch(SUPABASE_FUNCTION_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token }),
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return { valid: false, error: 'Erro ao validar token' };
+  }
+}
 
 export const CreateAccount: React.FC<CreateAccountProps> = ({ onComplete }) => {
   const [step, setStep] = useState<Step>('loading');
@@ -20,19 +39,32 @@ export const CreateAccount: React.FC<CreateAccountProps> = ({ onComplete }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tokenParam = params.get('token');
-    const emailParam = params.get('email');
+    const validateAndSetup = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const tokenParam = params.get('token');
 
-    if (!tokenParam || !emailParam) {
-      setStep('error');
-      setError('Link de acesso necessário. Utilize o link enviado ao seu email após a compra.');
-      return;
-    }
+      if (!tokenParam) {
+        setStep('error');
+        setError('Esse link de acesso é necessário para criar sua conta.');
+        return;
+      }
 
-    setToken(tokenParam);
-    setEmail(emailParam);
-    setStep('form');
+      setToken(tokenParam);
+      setStep('verifying');
+
+      const result = await validateToken(tokenParam);
+
+      if (!result.valid) {
+        setStep('error');
+        setError(result.error || 'Esse link de acesso não é mais válido ou já foi utilizado. Se precisar, entre em contato com o suporte.');
+        return;
+      }
+
+      setEmail(result.email || '');
+      setStep('form');
+    };
+
+    validateAndSetup();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,7 +112,7 @@ export const CreateAccount: React.FC<CreateAccountProps> = ({ onComplete }) => {
     }
   };
 
-  if (step === 'loading') {
+  if (step === 'loading' || step === 'verifying') {
     return (
       <div className="min-h-screen bg-[#FCFBFA] flex items-center justify-center p-4">
         <div className="text-center">

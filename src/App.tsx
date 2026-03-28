@@ -225,7 +225,7 @@ export default function App() {
   }
 
   if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} onRequestTokenValidation={handleStartTokenValidation} />;
+    return <Login onLogin={handleLogin} />;
   }
 
   if (!userData || !userData.setupComplete) {

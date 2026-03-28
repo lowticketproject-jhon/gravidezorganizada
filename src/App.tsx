@@ -18,7 +18,6 @@ import {
 import { UserData, Appointment, Checklist } from './types';
 import { Onboarding } from './components/Onboarding';
 import { Login } from './components/Login';
-import { TokenValidation } from './components/TokenValidation';
 import { Dashboard } from './components/Dashboard';
 import { Navigation } from './components/Navigation';
 import { TodayScreen } from './components/TodayScreen';
@@ -30,7 +29,6 @@ import { ChecklistsScreen } from './components/ChecklistsScreen';
 import { BabyScreen } from './components/BabyScreen';
 import { ProfileScreen } from './components/ProfileScreen';
 import { EditProfileScreen } from './components/EditProfileScreen';
-import { Obrigado } from './components/Obrigado';
 import { DEFAULT_CHECKLISTS } from './constants/checklists';
 import { calculatePregnancyData } from './utils/pregnancyCalculations';
 import { AnimatePresence, motion } from 'motion/react';
@@ -49,24 +47,10 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(false);
-  const [needsTokenValidation, setNeedsTokenValidation] = useState(false);
-  const [validatedEmail, setValidatedEmail] = useState<string | null>(null);
-  const [isObrigadoPage, setIsObrigadoPage] = useState(false);
 
   // Load data from localStorage and check Supabase session
   useEffect(() => {
     const init = async () => {
-      // Check if this is the obrigado page (path or query param)
-      const path = window.location.pathname;
-      const params = new URLSearchParams(window.location.search);
-      const isObrigado = path.includes('obrigado') || params.get('page') === 'obrigado' || (params.get('token') && params.get('email'));
-      
-      if (isObrigado) {
-        setIsObrigadoPage(true);
-        setIsLoading(false);
-        return;
-      }
-
       // 1. Check Supabase Session
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
@@ -139,22 +123,6 @@ export default function App() {
     }
   };
 
-  const handleTokenValidated = (email: string) => {
-    setValidatedEmail(email);
-    setNeedsTokenValidation(false);
-  };
-
-  const handleStartTokenValidation = () => {
-    setNeedsTokenValidation(true);
-  };
-
-  const handleObrigadoComplete = (email: string, uid: string) => {
-    setIsObrigadoPage(false);
-    setIsAuthenticated(true);
-    setUserId(uid);
-    setActiveScreen('home');
-  };
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setIsAuthenticated(false);
@@ -215,14 +183,6 @@ export default function App() {
   };
 
   if (isLoading) return null;
-
-  if (isObrigadoPage) {
-    return <Obrigado onComplete={handleObrigadoComplete} />;
-  }
-
-  if (needsTokenValidation) {
-    return <TokenValidation onTokenValidated={handleTokenValidated} />;
-  }
 
   if (!isAuthenticated) {
     return <Login onLogin={handleLogin} />;

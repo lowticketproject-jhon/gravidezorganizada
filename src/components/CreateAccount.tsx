@@ -114,18 +114,13 @@ export const CreateAccount: React.FC<CreateAccountProps> = ({ onComplete }) => {
       }
 
       if (authData.user) {
-        const consumeResponse = await fetch(`${SUPABASE_URL}/functions/v1/consume-token`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ token, auth_user_id: authData.user.id }),
+        const { error: consumeError } = await supabase.rpc('consume_purchase_token', {
+          p_token: token,
+          p_auth_user_id: authData.user.id,
         });
-        
-        const consumeData = await consumeResponse.json();
 
-        if (!consumeResponse.ok || consumeData.error) {
-          setError(consumeData.error || 'Não foi possível concluir seu acesso. Se o problema continuar, entre em contato com o suporte.');
+        if (consumeError) {
+          setError('Não foi possível concluir seu acesso. Se o problema continuar, entre em contato com o suporte.');
           setIsLoading(false);
           return;
         }

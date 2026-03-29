@@ -53,6 +53,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     <div className="min-h-screen bg-[#FCFBFA] flex flex-col items-center justify-center p-6 relative overflow-hidden">
       <BackgroundDecoration />
 
+      <div className="w-full max-w-md text-center relative z-20">
       <AnimatePresence mode="wait">
         {step === 1 && (
           <motion.div
@@ -60,7 +61,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="w-full max-w-md text-center relative z-10"
+            className="w-full text-center"
           >
             <div className="mb-8 flex justify-center">
               <img 
@@ -261,6 +262,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 };

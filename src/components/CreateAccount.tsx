@@ -68,7 +68,7 @@ export const CreateAccount: React.FC<CreateAccountProps> = ({ onComplete }) => {
     setIsLoading(true);
 
     if (password !== confirmPassword) {
-      setError('As senhas não conferem.');
+      setError('As senhas não coincidem.');
       setIsLoading(false);
       return;
     }
@@ -95,6 +95,17 @@ export const CreateAccount: React.FC<CreateAccountProps> = ({ onComplete }) => {
       }
 
       if (authData.user) {
+        const { error: consumeError } = await supabase.rpc('consume_purchase_token', {
+          p_token: token,
+          p_auth_user_id: authData.user.id,
+        });
+
+        if (consumeError) {
+          setError('Não foi possível concluir seu acesso. Se o problema continuar, entre em contato com o suporte.');
+          setIsLoading(false);
+          return;
+        }
+
         setStep('success');
         setTimeout(() => {
           onComplete(email, authData.user.id);

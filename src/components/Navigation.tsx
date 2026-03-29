@@ -6,7 +6,8 @@ import {
   Baby, 
   User, 
   Clock, 
-  AlertTriangle 
+  AlertTriangle,
+  Apple
 } from 'lucide-react';
 
 import { BabyGender } from '../types';
@@ -24,6 +25,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeScreen, onNavigate
     { id: 'timeline', label: 'Jornada', icon: Calendar },
     { id: 'steps', label: 'Passos', icon: ListChecks },
     { id: 'symptoms', label: 'Sintomas', icon: AlertTriangle },
+    { id: 'alimentacao', label: 'Alimentação', icon: Apple },
     { id: 'baby', label: 'Bebê', icon: Baby },
     { id: 'profile', label: 'Perfil', icon: User },
   ];

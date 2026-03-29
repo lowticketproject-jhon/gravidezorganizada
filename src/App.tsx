@@ -30,6 +30,7 @@ import { ChecklistsScreen } from './components/ChecklistsScreen';
 import { BabyScreen } from './components/BabyScreen';
 import { ProfileScreen } from './components/ProfileScreen';
 import { EditProfileScreen } from './components/EditProfileScreen';
+import { AlimentacaoScreen } from './components/AlimentacaoScreen';
 import { DEFAULT_CHECKLISTS } from './constants/checklists';
 import { calculatePregnancyData } from './utils/pregnancyCalculations';
 import { AnimatePresence, motion } from 'motion/react';
@@ -246,6 +247,8 @@ export default function App() {
         return <ChecklistsScreen checklists={checklists} onToggleItem={toggleChecklistItem} onBack={() => setActiveScreen('home')} />;
       case 'baby':
         return <BabyScreen userData={userData} onBack={() => setActiveScreen('home')} />;
+      case 'alimentacao':
+        return <AlimentacaoScreen userData={userData} onBack={() => setActiveScreen('home')} />;
       case 'profile':
         return <ProfileScreen userData={userData} onReset={handleReset} onLogout={handleLogout} onBack={() => setActiveScreen('home')} userId={userId} onNavigate={setActiveScreen} darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)} />;
       case 'edit-mother':

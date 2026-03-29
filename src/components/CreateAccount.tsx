@@ -10,33 +10,21 @@ interface CreateAccountProps {
 
 type Step = 'loading' | 'verifying' | 'form' | 'error' | 'success';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://ktetlxuftfkjwbdwzdwy.supabase.co';
-
 async function validateToken(token: string): Promise<{ valid: boolean; email?: string; message?: string }> {
   try {
-    console.log('=== DEBUG TOKEN VALIDATION ===');
-    console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
-    console.log('Function URL:', import.meta.env.VITE_SUPABASE_FUNCTION_URL);
-    console.log('Token received:', token);
+    const { data, error } = await supabase.rpc('validate_purchase_token', { p_token: token });
     
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/validate-token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ token }),
-    });
-    
-    const data = await response.json();
-    
-    console.log('Edge Function result:', JSON.stringify(data, null, 2));
-    console.log('=============================');
-    
-    if (!response.ok || !data.valid) {
-      return { valid: false, message: data.error || 'Token inválido' };
+    if (error || !data || data.length === 0) {
+      return { valid: false, message: 'Erro ao validar token' };
     }
     
-    return { valid: true, email: data.email, message: data.error };
+    const result = data[0];
+    
+    if (!result.valid) {
+      return { valid: false, message: result.message || 'Token inválido' };
+    }
+    
+    return { valid: true, email: result.email, message: result.message };
   } catch (error) {
     console.error('Exception during token validation:', error);
     return { valid: false, message: 'Erro ao validar token' };

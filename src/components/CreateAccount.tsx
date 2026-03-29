@@ -18,7 +18,17 @@ async function validateToken(token: string): Promise<{ valid: boolean; email?: s
       return { valid: false, message: 'Erro ao validar token' };
     }
     
-    return data;
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      return { valid: false, message: 'Erro ao validar token' };
+    }
+    
+    const result = data[0];
+    
+    if (!result.valid) {
+      return { valid: false, message: result.message || 'Token inválido' };
+    }
+    
+    return { valid: true, email: result.email, message: result.message };
   } catch (error) {
     return { valid: false, message: 'Erro ao validar token' };
   }

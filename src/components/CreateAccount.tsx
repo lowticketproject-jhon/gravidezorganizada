@@ -10,35 +10,33 @@ interface CreateAccountProps {
 
 type Step = 'loading' | 'verifying' | 'form' | 'error' | 'success';
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://ktetlxuftfkjwbdwzdwy.supabase.co';
+
 async function validateToken(token: string): Promise<{ valid: boolean; email?: string; message?: string }> {
   try {
     console.log('=== DEBUG TOKEN VALIDATION ===');
     console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+    console.log('Function URL:', import.meta.env.VITE_SUPABASE_FUNCTION_URL);
     console.log('Token received:', token);
     
-    const { data, error } = await supabase.rpc('validate_purchase_token', { p_token: token });
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/validate-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token }),
+    });
     
-    console.log('RPC result data:', JSON.stringify(data, null, 2));
-    console.log('RPC result error:', error);
+    const data = await response.json();
+    
+    console.log('Edge Function result:', JSON.stringify(data, null, 2));
     console.log('=============================');
     
-    if (error) {
-      console.error('RPC Error object:', error);
-      return { valid: false, message: 'Erro ao validar token' };
+    if (!response.ok || !data.valid) {
+      return { valid: false, message: data.error || 'Token inválido' };
     }
     
-    if (!data || !Array.isArray(data) || data.length === 0) {
-      console.error('RPC returned empty or invalid data');
-      return { valid: false, message: 'Erro ao validar token' };
-    }
-    
-    const result = data[0];
-    
-    if (!result.valid) {
-      return { valid: false, message: result.message || 'Token inválido' };
-    }
-    
-    return { valid: true, email: result.email, message: result.message };
+    return { valid: true, email: data.email, message: data.error };
   } catch (error) {
     console.error('Exception during token validation:', error);
     return { valid: false, message: 'Erro ao validar token' };
@@ -116,13 +114,18 @@ export const CreateAccount: React.FC<CreateAccountProps> = ({ onComplete }) => {
       }
 
       if (authData.user) {
-        const { error: consumeError } = await supabase.rpc('consume_purchase_token', {
-          p_token: token,
-          p_auth_user_id: authData.user.id,
+        const consumeResponse = await fetch(`${SUPABASE_URL}/functions/v1/consume-token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token, auth_user_id: authData.user.id }),
         });
+        
+        const consumeData = await consumeResponse.json();
 
-        if (consumeError) {
-          setError('Não foi possível concluir seu acesso. Se o problema continuar, entre em contato com o suporte.');
+        if (!consumeResponse.ok || consumeData.error) {
+          setError(consumeData.error || 'Não foi possível concluir seu acesso. Se o problema continuar, entre em contato com o suporte.');
           setIsLoading(false);
           return;
         }

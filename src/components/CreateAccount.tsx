@@ -12,13 +12,23 @@ type Step = 'loading' | 'verifying' | 'form' | 'error' | 'success';
 
 async function validateToken(token: string): Promise<{ valid: boolean; email?: string; message?: string }> {
   try {
+    console.log('=== DEBUG TOKEN VALIDATION ===');
+    console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+    console.log('Token received:', token);
+    
     const { data, error } = await supabase.rpc('validate_purchase_token', { p_token: token });
     
+    console.log('RPC result data:', JSON.stringify(data, null, 2));
+    console.log('RPC result error:', error);
+    console.log('=============================');
+    
     if (error) {
+      console.error('RPC Error object:', error);
       return { valid: false, message: 'Erro ao validar token' };
     }
     
     if (!data || !Array.isArray(data) || data.length === 0) {
+      console.error('RPC returned empty or invalid data');
       return { valid: false, message: 'Erro ao validar token' };
     }
     
@@ -30,6 +40,7 @@ async function validateToken(token: string): Promise<{ valid: boolean; email?: s
     
     return { valid: true, email: result.email, message: result.message };
   } catch (error) {
+    console.error('Exception during token validation:', error);
     return { valid: false, message: 'Erro ao validar token' };
   }
 }

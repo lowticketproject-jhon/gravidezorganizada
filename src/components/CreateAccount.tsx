@@ -12,33 +12,27 @@ type Step = 'loading' | 'verifying' | 'form' | 'error' | 'success';
 
 async function validateToken(token: string): Promise<{ valid: boolean; email?: string; message?: string }> {
   try {
-    console.log('=== DEBUG ===');
-    console.log('Token:', token);
+    const { data, error } = await supabase
+      .from('purchase_access')
+      .select('email, used, expires_at')
+      .eq('token', token)
+      .single();
     
-    const { data, error } = await supabase.rpc('validate_purchase_token', { p_token: token });
-    
-    console.log('RPC data:', JSON.stringify(data));
-    console.log('RPC error:', error);
-    
-    if (error) {
-      console.error('RPC Error:', error.message);
-      return { valid: false, message: error.message };
+    if (error || !data) {
+      return { valid: false, message: 'Token inválido' };
     }
     
-    if (!data || data.length === 0) {
-      return { valid: false, message: 'Token não encontrado' };
+    if (data.used) {
+      return { valid: false, message: 'Token já foi utilizado' };
     }
     
-    const result = data[0];
-    
-    if (!result.valid) {
-      return { valid: false, message: result.message || 'Token inválido' };
+    if (data.expires_at && new Date(data.expires_at) < new Date()) {
+      return { valid: false, message: 'Token expirado' };
     }
     
-    return { valid: true, email: result.email, message: result.message };
+    return { valid: true, email: data.email, message: 'Token válido' };
   } catch (error: any) {
-    console.error('Exception:', error);
-    return { valid: false, message: error.message || 'Erro ao validar token' };
+    return { valid: false, message: 'Erro ao validar token' };
   }
 }
 
